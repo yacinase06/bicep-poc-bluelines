@@ -1,5 +1,3 @@
-// Example of similar "module" call out structure - https://github.com/Azure/bicep/blob/main/docs/examples/301/modules-vwan-to-vnet-s2s-with-fw/main.bicep
-
 @minLength(36)
 @maxLength(36)
 @description('Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv')
@@ -28,29 +26,6 @@ param HostVmSize string = 'Standard_D2_v3'
 @minLength(3)
 param VmAdminUsername string = 'localadmin'
 
-/* @description('Name of the vnet')
-@minLength(3)
-param VnetName string = 'dockervnet'
-
-@description('Set the address space for the VNet')
-param VnetAddressPrefix string = '172.16.0.0/16'
-
-@description('Set the name for the docker subnet')
-param Subnet1Name string = 'dockersubnet'
-
-@description('Set the subnet range for subnet1')
-@minLength(9)
-param Subnet1Prefix string = '172.16.24.0/24'
-
-@description('Set the NSG name')
-@minLength(3)
-param NetworkSecurityGroupName string = 'dockernsg' */
-
-/* @description('Set the Public IP Address suffix to append to the FQDN for the hosts')
-@minLength(3)
-@maxLength(7)
-param publicIPAddressNameSuffix string = 'dhostip' */
-
 @description('Set the path to the github directory that has the custom script extension scripts')
 @minLength(10)
 param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/main/scripts/'
@@ -60,7 +35,7 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @maxValue(1)
 param numberOfHosts int = 1
 
-var onpremSubnetRef = '${virtualnetwork[3].outputs.vnid}/subnets/${virtualnetwork[3].outputs.subnets[0].name}'
+var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
 
 var vnets = [
   {
@@ -132,10 +107,10 @@ module dc './modules/vm.bicep' =[for i in range (1,numberOfHosts): {
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
+    vnetName         : vnet.vnetName
     vnetAddressPrefix: vnet.vnetaddressprefix
     location         : Location
     subnets          : vnet.subnets
-    vnetName         : vnet.vnetName
   }
 
   name: '${vnet.vnetName}'
