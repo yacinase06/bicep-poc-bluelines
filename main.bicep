@@ -1,0 +1,156 @@
+// Example of similar "module" call out structure - https://github.com/Azure/bicep/blob/main/docs/examples/301/modules-vwan-to-vnet-s2s-with-fw/main.bicep
+
+@minLength(36)
+@maxLength(36)
+@description('Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv')
+param adUserId string  = '31bc51c1-c74e-4d61-ae56-6061de35f3b8'
+
+@description('Set the location for the resource group and all resources')
+@minLength(3)
+@maxLength(20)
+param Location string = 'UK South'
+
+@description('Set the resource group name, this will be created automatically')
+@minLength(3)
+@maxLength(10)
+param ResourceGroupName string = 'bluelines'
+
+@description('Set the prefix of the docker hosts')
+@minLength(2)
+@maxLength(8)
+param VmHostname string = 'dc'
+
+@description('Set the size for the VM')
+@minLength(6)
+param HostVmSize string = 'Standard_D2_v3'
+
+@description('Set a username to log in to the hosts')
+@minLength(3)
+param VmAdminUsername string = 'localadmin'
+
+/* @description('Name of the vnet')
+@minLength(3)
+param VnetName string = 'dockervnet'
+
+@description('Set the address space for the VNet')
+param VnetAddressPrefix string = '172.16.0.0/16'
+
+@description('Set the name for the docker subnet')
+param Subnet1Name string = 'dockersubnet'
+
+@description('Set the subnet range for subnet1')
+@minLength(9)
+param Subnet1Prefix string = '172.16.24.0/24'
+
+@description('Set the NSG name')
+@minLength(3)
+param NetworkSecurityGroupName string = 'dockernsg' */
+
+/* @description('Set the Public IP Address suffix to append to the FQDN for the hosts')
+@minLength(3)
+@maxLength(7)
+param publicIPAddressNameSuffix string = 'dhostip' */
+
+@description('Set the path to the github directory that has the custom script extension scripts')
+@minLength(10)
+param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/main/scripts/'
+
+@description('Set the number of hosts to create')
+@minValue(1)
+@maxValue(1)
+param numberOfHosts int = 1
+
+var onpremSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+
+var vnets = [
+  {
+    vnetName: 'hubVnet'
+    vnetAddressPrefix: '172.15.0.0/16'
+    subnets: hubSubnets
+  }
+  {
+    vnetName: 'spokeVnet'
+    vnetAddressPrefix: '172.16.0.0/16'
+    subnets: spokeSubnets
+  }
+  {
+    vnetName: 'onpremises'
+    vnetAddressPrefix: '192.168.0.0/16'
+    subnets: onpremisesSubnets
+  }
+]
+
+var hubSubnets = [
+  {
+    name: 'main'
+    prefix: '172.15.1.0/24'
+  }
+]
+
+var spokeSubnets = [
+  {
+    name: 'main'
+    prefix: '172.16.1.0/24'
+  }
+]
+
+var onpremisesSubnets = [
+  {
+    name: 'main'
+    prefix: '192.168.1.0/24'
+  }
+]
+
+targetScope = 'subscription'
+
+resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
+  name: ResourceGroupName
+  location: Location
+}
+
+ module kv './modules/kv.bicep' = {
+  params: {
+    adUserId: adUserId
+  }
+  name: 'kv'
+  scope: rg
+}
+
+// The VM passwords are generated at run time and automatically stored in Keyvault. 
+module dc './modules/vm.bicep' =[for i in range (1,numberOfHosts): {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : '${VmHostname}${i}'
+    subnet1ref               : onpremSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+  }
+  name: '${VmHostname}${i}'
+  scope: rg
+} ] 
+
+module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
+  params: {
+    vnetAddressPrefix: vnet.vnetaddressprefix
+    location         : Location
+    subnets          : vnet.subnets
+    vnetName         : vnet.vnetName
+  }
+
+  name: '${vnet.vnetName}'
+  scope: rg
+} ]
+
+/* Deployment using bicep (via az cli)
+
+The first command retrieves the signed-in usr object ID to use for setting Keyvault permissions, you need to add this ObjectID to the adUserId parameter at the top of this file.
+All other parameters have defaults set. 
+
+Command:   az ad signed-in-user show --query objectId -o tsv
+
+The second command deploys this main.bicep 
+
+Command: az deployment sub create --name docker-single-host --template-file .\main.bicep --location uksouth
+
+ */
