@@ -13,7 +13,7 @@ param vmSize string
 param location string = resourceGroup().location
 
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
-var nicName = '${vmname}myVMNic'
+var nicName = '${vmname}nic'
 
 //param publicIPAddressNameSuffix string
 

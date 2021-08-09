@@ -60,7 +60,7 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @maxValue(1)
 param numberOfHosts int = 1
 
-var onpremSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var onpremSubnetRef = '${virtualnetwork[3].outputs.vnid}/subnets/${virtualnetwork[3].outputs.subnets[0].name}'
 
 var vnets = [
   {
