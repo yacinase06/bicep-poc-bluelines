@@ -14,7 +14,6 @@ param domainName string = 'contoso.local' // this has a default so that module c
 param deployDC bool
 param githubPath string
 
-
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
 var nicName = '${vmname}nic'
 
