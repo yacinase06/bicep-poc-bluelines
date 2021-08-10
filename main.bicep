@@ -123,6 +123,17 @@ module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   scope: rg
 } ]
 
+module vnetPeering './modules/vnetpeering.bicep' = {
+  params:{
+    hubVnetId    : virtualnetwork[0].outputs.vnid
+    spokeVnetId  : virtualnetwork[1].outputs.vnid
+    hubVnetName  : virtualnetwork[0].outputs.vnName
+    spokeVnetName: virtualnetwork[1].outputs.vnName
+  }
+  scope: rg
+  name: 'vNetpeering'
+}
+
 /* Deployment using bicep (via az cli)
 
 The first command retrieves the signed-in usr object ID to use for setting Keyvault permissions, you need to add this ObjectID to the adUserId parameter at the top of this file.

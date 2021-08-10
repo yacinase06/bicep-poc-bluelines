@@ -3,7 +3,7 @@ param vnetName string
 param vnetAddressPrefix string
 param location string
 
-resource vn 'Microsoft.Network/virtualNetworks@2020-06-01' = {
+resource vn 'Microsoft.Network/virtualNetworks@2021-02-01' = {
   name: vnetName 
   location: location
   properties: {
@@ -23,3 +23,4 @@ resource vn 'Microsoft.Network/virtualNetworks@2020-06-01' = {
 
 output subnets array = vn.properties.subnets
 output vnid string = vn.id
+output vnName string = vn.name
