@@ -77,9 +77,9 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
     storageProfile: {
       imageReference: {
 
-        publisher: 'canonical'
-        offer: '0001-com-ubuntu-server-hirsute'
-        sku: '21_04'
+        publisher: 'MicrosoftWindowsServer'
+        offer: 'WindowsServer'
+        sku: '2019-datacenter-gensecond'
         version: 'latest'
       }
       osDisk: {
