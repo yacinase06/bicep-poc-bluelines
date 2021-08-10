@@ -77,13 +77,13 @@ var spokeSubnets = [
 var onpremisesSubnets = [
   {
     name: 'main'
-    prefix: '192.168.1.0/24'
+    prefix: '192.168.199.0/24'
   }
 ]
 
 targetScope = 'subscription'
 
-resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
+resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   location: Location
 }

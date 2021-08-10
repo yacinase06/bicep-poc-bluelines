@@ -68,16 +68,5 @@ resource keyvaultname_resource 'Microsoft.KeyVault/vaults@2019-09-01' = {
   }
 }
 
-/* resource keyvaultname_secretName 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
-  name: '${keyvaultname_resource.name}/${secretName}'
-  properties: {
-    contentType: 'securestring'
-    value: secretValue
-    attributes: {
-      enabled: true
-    }
-  }
-} */
-
 output keyvaultid string = keyvaultname_resource.id
 output keyvaultname string = keyvaultname_resource.name

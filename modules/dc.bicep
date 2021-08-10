@@ -16,7 +16,7 @@ param location string = resourceGroup().location
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
 var nicName = '${vmname}nic'
 
-resource stg 'Microsoft.Storage/storageAccounts@2019-06-01' = {
+resource stg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageAccountName
   location: location
   sku: {
@@ -26,7 +26,7 @@ resource stg 'Microsoft.Storage/storageAccounts@2019-06-01' = {
 }
 
 
-resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
+resource nInter 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   name: nicName
   location: location
 
@@ -45,7 +45,7 @@ resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
   }
 }
 
-resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
+resource VM 'Microsoft.Compute/virtualMachines@2021-03-01' = {
   name: vmname
   location: location
   properties: {
