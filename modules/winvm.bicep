@@ -5,7 +5,8 @@ param subnetRef string
 param githubPath string
 @secure()
 param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
-param domainName string
+param domainName string = 'contoso.local'
+param deployDC bool
 
 @description('Size of the virtual machine.')
 param vmSize string 
@@ -104,7 +105,7 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
 }
 
 // Will need to take a look at https://github.com/dsccommunity/DnsServerDsc to add DNS conditional forwarder through DSC
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (deployDC) {
   parent: VM
   name: 'CreateADForest'
   location: location

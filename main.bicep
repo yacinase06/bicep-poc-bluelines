@@ -13,11 +13,6 @@ param Location string = 'UK South'
 @maxLength(10)
 param ResourceGroupName string = 'bluelines'
 
-@description('Set the prefix of the docker hosts')
-@minLength(2)
-@maxLength(8)
-param VmHostname string = 'dc'
-
 @description('Set the size for the VM')
 @minLength(6)
 param HostVmSize string = 'Standard_D2_v3'
@@ -30,17 +25,25 @@ param VmAdminUsername string = 'localadmin'
 @minLength(10)
 param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/'
 
-@description('Set the number of hosts to create')
-@minValue(1)
-@maxValue(1)
-param numberOfHosts int = 1
-
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
 param domainName string = 'contoso.local'
 
+var vm = [
+  {
+  vmname   : 'hubjump'
+  subnetRef: '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+  }
+  {
+  vmname   : 'spokejump'
+  subnetRef: '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
+  }
+  {
+  vmname   : 'dc1'
+  subnetRef: '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[2].name}'
+  }
 
-var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
+]
 
 var vnets = [
   {
@@ -97,20 +100,49 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 }
 
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
-module dc './modules/dc.bicep' =[for i in range (1,numberOfHosts): {
+module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : '${VmHostname}${i}'
-    subnetRef    : onpremSubnetRef
+    vmname       : vm[0].name
+    subnetRef    : vm[0].subnetRef
+    vmSize       : HostVmSize
+    githubPath   : githubPath
+    deployDC     : false
+
+  }
+  name: 'hubjump'
+  scope: rg
+}  
+
+module spokeJumpServer './modules/winvm.bicep' = {
+  params: {
+    adminusername: VmAdminUsername
+    keyvault_name: kv.outputs.keyvaultname
+    vmname       : vm[1].name
+    subnetRef    : vm[1].subnetRef
+    vmSize       : HostVmSize
+    githubPath   : githubPath
+    deployDC     : false
+  }
+  name: 'spokejump'
+  scope: rg
+}  
+
+module dc './modules/winvm.bicep' = {
+  params: {
+    adminusername: VmAdminUsername
+    keyvault_name: kv.outputs.keyvaultname
+    vmname       : vm[2].name
+    subnetRef    : vm[2].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     domainName   : domainName
+    deployDC     : true
   }
-  name: '${VmHostname}${i}'
+  name: 'OnpremDC'
   scope: rg
-} ] 
-
+} 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
     vnetName         : vnet.vnetName
