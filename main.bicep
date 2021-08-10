@@ -28,7 +28,7 @@ param VmAdminUsername string = 'localadmin'
 
 @description('Set the path to the github directory that has the custom script extension scripts')
 @minLength(10)
-param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/main/scripts/'
+param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/'
 
 @description('Set the number of hosts to create')
 @minValue(1)
