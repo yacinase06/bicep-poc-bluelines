@@ -100,6 +100,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 }
 
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
+// It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
 module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
