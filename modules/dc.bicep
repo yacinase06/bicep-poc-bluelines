@@ -76,19 +76,19 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
 
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
-        sku: '2019-datacenter-gensecond'
+        sku: '2019-Datacenter'
         version: 'latest'
       }
       osDisk: {
         createOption: 'FromImage'
       }
-    /*  dataDisks: [                  // Uncomment to add data disk
+      dataDisks: [                  
         {
-          diskSizeGB: 1023
+          diskSizeGB: 20
           lun: 0
           createOption: 'Empty'
         }
-      ] */
+      ] 
     }
     networkProfile: {
       networkInterfaces: [
@@ -119,25 +119,30 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
 
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
   parent: VM
-  name: 'Ext'
+  name: 'CreateADForest'
   location: location
-  dependsOn:[
-    VM
-  ]
-   properties: {
-    publisher: 'Microsoft.Azure.Extensions'
-    type: 'CustomScript'
-    typeHandlerVersion: '2.1' 
-    autoUpgradeMinorVersion: false
-    settings: {}
-    protectedSettings: {
-      fileUris: [
-        '${githubPath}cse.sh'
-      ]
-      commandToExecute: 'sh cse.sh'
+  properties: {
+    publisher: 'Microsoft.Powershell'
+    type: 'DSC'
+    typeHandlerVersion: '2.19'
+    autoUpgradeMinorVersion: true
+    settings: {
+      ModulesUrl: uri(githubPath, 'CreateADPDC.zip')
+      ConfigurationFunction: 'CreateADPDC.ps1\\CreateADPDC'
+      Properties: {
+        DomainName: 'test.local'
+        AdminCreds: {
+          UserName: adminusername
+          Password: 'PrivateSettingsRef:AdminPassword'
+        }
+      }
     }
-    
-   }
+    protectedSettings: {
+      Items: {
+        AdminPassword: adminPassword
+      } 
+    }
+  }
 }
 
 // output dockerhostfqdn string = pip.properties.dnsSettings.fqdn
