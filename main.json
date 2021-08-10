@@ -1,0 +1,578 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.3.255.40792",
+      "templateHash": "16784995880411045300"
+    }
+  },
+  "parameters": {
+    "adUserId": {
+      "type": "string",
+      "defaultValue": "31bc51c1-c74e-4d61-ae56-6061de35f3b8",
+      "metadata": {
+        "description": "Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv"
+      },
+      "maxLength": 36,
+      "minLength": 36
+    },
+    "Location": {
+      "type": "string",
+      "defaultValue": "UK South",
+      "maxLength": 20,
+      "minLength": 3,
+      "metadata": {
+        "description": "Set the location for the resource group and all resources"
+      }
+    },
+    "ResourceGroupName": {
+      "type": "string",
+      "defaultValue": "bluelines",
+      "maxLength": 10,
+      "minLength": 3,
+      "metadata": {
+        "description": "Set the resource group name, this will be created automatically"
+      }
+    },
+    "VmHostname": {
+      "type": "string",
+      "defaultValue": "dc",
+      "maxLength": 8,
+      "minLength": 2,
+      "metadata": {
+        "description": "Set the prefix of the docker hosts"
+      }
+    },
+    "HostVmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D2_v3",
+      "minLength": 6,
+      "metadata": {
+        "description": "Set the size for the VM"
+      }
+    },
+    "VmAdminUsername": {
+      "type": "string",
+      "defaultValue": "localadmin",
+      "minLength": 3,
+      "metadata": {
+        "description": "Set a username to log in to the hosts"
+      }
+    },
+    "githubPath": {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/",
+      "minLength": 10,
+      "metadata": {
+        "description": "Set the path to the github directory that has the custom script extension scripts"
+      }
+    },
+    "numberOfHosts": {
+      "type": "int",
+      "defaultValue": 1,
+      "maxValue": 1,
+      "minValue": 1,
+      "metadata": {
+        "description": "Set the number of hosts to create"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "contoso.local",
+      "minLength": 3,
+      "metadata": {
+        "description": "Set the name of the domain eg contoso.local"
+      }
+    }
+  },
+  "functions": [],
+  "variables": {
+    "vnets": [
+      {
+        "vnetName": "hubVnet",
+        "vnetAddressPrefix": "172.15.0.0/16",
+        "subnets": "[variables('hubSubnets')]"
+      },
+      {
+        "vnetName": "spokeVnet",
+        "vnetAddressPrefix": "172.16.0.0/16",
+        "subnets": "[variables('spokeSubnets')]"
+      },
+      {
+        "vnetName": "onpremises",
+        "vnetAddressPrefix": "192.168.0.0/16",
+        "subnets": "[variables('onpremisesSubnets')]"
+      }
+    ],
+    "hubSubnets": [
+      {
+        "name": "main",
+        "prefix": "172.15.1.0/24"
+      }
+    ],
+    "spokeSubnets": [
+      {
+        "name": "main",
+        "prefix": "172.16.1.0/24"
+      }
+    ],
+    "onpremisesSubnets": [
+      {
+        "name": "main",
+        "prefix": "192.168.1.0/24"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2020-10-01",
+      "name": "[parameters('ResourceGroupName')]",
+      "location": "[parameters('Location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "kv",
+      "resourceGroup": "[parameters('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "adUserId": {
+            "value": "[parameters('adUserId')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.3.255.40792",
+              "templateHash": "220683448064609268"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tenantId": {
+              "type": "string",
+              "defaultValue": "[subscription().tenantId]"
+            },
+            "keyvaultname": {
+              "type": "string",
+              "defaultValue": "[format('{0}-{1}', resourceGroup().name, uniqueString(resourceGroup().id))]"
+            },
+            "adUserId": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2019-09-01",
+              "name": "[parameters('keyvaultname')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "enabledForDeployment": false,
+                "enabledForTemplateDeployment": true,
+                "enabledForDiskEncryption": false,
+                "enableSoftDelete": false,
+                "accessPolicies": [
+                  {
+                    "objectId": "[parameters('adUserId')]",
+                    "tenantId": "[parameters('tenantId')]",
+                    "permissions": {
+                      "keys": [
+                        "get",
+                        "list",
+                        "update",
+                        "create",
+                        "import",
+                        "delete",
+                        "recover",
+                        "backup",
+                        "restore"
+                      ],
+                      "secrets": [
+                        "get",
+                        "list",
+                        "set",
+                        "delete",
+                        "recover",
+                        "backup",
+                        "restore"
+                      ],
+                      "certificates": [
+                        "get",
+                        "list",
+                        "update",
+                        "create",
+                        "import",
+                        "delete",
+                        "recover",
+                        "backup",
+                        "restore",
+                        "managecontacts",
+                        "manageissuers",
+                        "getissuers",
+                        "listissuers",
+                        "setissuers",
+                        "deleteissuers"
+                      ]
+                    }
+                  }
+                ],
+                "tenantId": "[parameters('tenantId')]",
+                "sku": {
+                  "name": "standard",
+                  "family": "A"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "keyvaultid": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyvaultname'))]"
+            },
+            "keyvaultname": {
+              "type": "string",
+              "value": "[parameters('keyvaultname')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "dc",
+        "count": "[length(range(1, parameters('numberOfHosts')))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "[format('{0}{1}', parameters('VmHostname'), range(1, parameters('numberOfHosts'))[copyIndex()])]",
+      "resourceGroup": "[parameters('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "adminusername": {
+            "value": "[parameters('VmAdminUsername')]"
+          },
+          "keyvault_name": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'kv'), '2019-10-01').outputs.keyvaultname.value]"
+          },
+          "vmname": {
+            "value": "[format('{0}{1}', parameters('VmHostname'), range(1, parameters('numberOfHosts'))[copyIndex()])]"
+          },
+          "subnetRef": {
+            "value": "[format('{0}/subnets/{1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName), '2019-10-01').outputs.vnid.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName), '2019-10-01').outputs.subnets.value[0].name)]"
+          },
+          "vmSize": {
+            "value": "[parameters('HostVmSize')]"
+          },
+          "githubPath": {
+            "value": "[parameters('githubPath')]"
+          },
+          "domainName": {
+            "value": "[parameters('domainName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.3.255.40792",
+              "templateHash": "15332258800374268590"
+            }
+          },
+          "parameters": {
+            "adminusername": {
+              "type": "string"
+            },
+            "keyvault_name": {
+              "type": "string"
+            },
+            "vmname": {
+              "type": "string"
+            },
+            "subnetRef": {
+              "type": "string"
+            },
+            "githubPath": {
+              "type": "string"
+            },
+            "adminPassword": {
+              "type": "secureString",
+              "defaultValue": "[format('{0}aA1!', uniqueString(resourceGroup().id))]"
+            },
+            "domainName": {
+              "type": "string"
+            },
+            "vmSize": {
+              "type": "string",
+              "metadata": {
+                "description": "Size of the virtual machine."
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "location for all resources"
+              }
+            }
+          },
+          "functions": [],
+          "variables": {
+            "storageAccountName": "[format('{0}{1}sa', uniqueString(resourceGroup().id), parameters('vmname'))]",
+            "nicName": "[format('{0}nic', parameters('vmname'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2019-06-01",
+              "name": "[variables('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "Storage"
+            },
+            {
+              "type": "Microsoft.Network/networkInterfaces",
+              "apiVersion": "2020-06-01",
+              "name": "[variables('nicName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "ipConfigurations": [
+                  {
+                    "name": "ipconfig1",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('subnetRef')]"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2020-06-01",
+              "name": "[parameters('vmname')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                  "computerName": "[parameters('vmname')]",
+                  "adminUsername": "[parameters('adminusername')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2019-Datacenter",
+                    "version": "latest"
+                  },
+                  "osDisk": {
+                    "createOption": "FromImage"
+                  },
+                  "dataDisks": [
+                    {
+                      "diskSizeGB": 20,
+                      "lun": 0,
+                      "createOption": "Empty"
+                    }
+                  ]
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))).primaryEndpoints.blob]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.KeyVault/vaults/secrets",
+              "apiVersion": "2019-09-01",
+              "name": "[format('{0}/{1}-admin-password', parameters('keyvault_name'), parameters('vmname'))]",
+              "properties": {
+                "contentType": "securestring",
+                "value": "[parameters('adminPassword')]",
+                "attributes": {
+                  "enabled": true
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Compute/virtualMachines/extensions",
+              "apiVersion": "2021-03-01",
+              "name": "[format('{0}/{1}', parameters('vmname'), 'CreateADForest')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.19",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                  "ModulesUrl": "[uri(parameters('githubPath'), 'CreateADPDC.zip')]",
+                  "ConfigurationFunction": "CreateADPDC.ps1\\CreateADPDC",
+                  "Properties": {
+                    "DomainName": "[parameters('domainName')]",
+                    "AdminCreds": {
+                      "UserName": "[parameters('adminusername')]",
+                      "Password": "PrivateSettingsRef:AdminPassword"
+                    }
+                  }
+                },
+                "protectedSettings": {
+                  "Items": {
+                    "AdminPassword": "[parameters('adminPassword')]"
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmname'))]"
+              ]
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'kv')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName)]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName)]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "virtualnetwork",
+        "count": "[length(variables('vnets'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "name": "[variables('vnets')[copyIndex()].vnetName]",
+      "resourceGroup": "[parameters('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "vnetName": {
+            "value": "[variables('vnets')[copyIndex()].vnetName]"
+          },
+          "vnetAddressPrefix": {
+            "value": "[variables('vnets')[copyIndex()].vnetaddressprefix]"
+          },
+          "location": {
+            "value": "[parameters('Location')]"
+          },
+          "subnets": {
+            "value": "[variables('vnets')[copyIndex()].subnets]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.3.255.40792",
+              "templateHash": "11484345693359099152"
+            }
+          },
+          "parameters": {
+            "subnets": {
+              "type": "array"
+            },
+            "vnetName": {
+              "type": "string"
+            },
+            "vnetAddressPrefix": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string"
+            }
+          },
+          "functions": [],
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2020-06-01",
+              "name": "[parameters('vnetName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "copy": [
+                  {
+                    "name": "subnets",
+                    "count": "[length(parameters('subnets'))]",
+                    "input": {
+                      "name": "[parameters('subnets')[copyIndex('subnets')].name]",
+                      "properties": {
+                        "addressPrefix": "[parameters('subnets')[copyIndex('subnets')].prefix]"
+                      }
+                    }
+                  }
+                ],
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('vnetAddressPrefix')]"
+                  ]
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "subnets": {
+              "type": "array",
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))).subnets]"
+            },
+            "vnid": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]"
+      ]
+    }
+  ]
+}
