@@ -104,7 +104,7 @@ module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[0].name
+    vmname       : vm[0].vmname
     subnetRef    : vm[0].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
@@ -119,7 +119,7 @@ module spokeJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[1].name
+    vmname       : vm[1].vmname
     subnetRef    : vm[1].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
@@ -133,7 +133,7 @@ module dc './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[2].name
+    vmname       : vm[2].vmname
     subnetRef    : vm[2].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
