@@ -40,7 +40,7 @@ var vm = [
   }
   {
   vmname   : 'dc1'
-  subnetRef: '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[2].name}'
+  subnetRef: '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
   }
 
 ]
