@@ -15,21 +15,6 @@ param location string = resourceGroup().location
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
 var nicName = '${vmname}nic'
 
-//param publicIPAddressNameSuffix string
-
-// var dnsLabelPrefix = 'dns-${uniqueString(resourceGroup().id)}-${publicIPAddressNameSuffix}'
-
-/*resource pip 'Microsoft.Network/publicIPAddresses@2020-06-01' = {
-  name: publicIPAddressNameSuffix
-  location: location
-  properties: {
-    publicIPAllocationMethod: 'Dynamic'
-    dnsSettings: {
-      domainNameLabel: dnsLabelPrefix
-    }
-  }
-} */
-
 resource stg 'Microsoft.Storage/storageAccounts@2019-06-01' = {
   name: storageAccountName
   location: location
