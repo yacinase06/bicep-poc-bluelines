@@ -132,6 +132,6 @@ Command:   az ad signed-in-user show --query objectId -o tsv
 
 The second command deploys this main.bicep 
 
-Command: az deployment sub create --name docker-single-host --template-file .\main.bicep --location uksouth
+Command: az deployment sub create --name bluelines --template-file .\main.bicep --location uksouth
 
  */
