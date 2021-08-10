@@ -29,21 +29,15 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @minLength(3)
 param domainName string = 'contoso.local'
 
-var vms = [
-  {
-  vmname   : 'hubjump'
-  subnetRef: '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
-  }
-  {
-  vmname   : 'spokejump'
-  subnetRef: '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
-  }
-  {
-  vmname   : 'dc1'
-  subnetRef: '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
-  }
+var hubVmName       = 'hubjump'
+var hubSubnetRef    = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
 
-]
+var spokeVmName     = 'spokejump'
+var SpokeSubnetRef  = '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
+
+var dcVmName        = 'dc1'
+var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
+  
 
 var vnets = [
   {
@@ -105,8 +99,8 @@ module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vms[0].vmname
-    subnetRef    : vms[0].subnetRef
+    vmname       : hubVmName
+    subnetRef    : hubSubnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     deployDC     : false
@@ -120,8 +114,8 @@ module spokeJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vms[1].vmname
-    subnetRef    : vms[1].subnetRef
+    vmname       : spokeVmName
+    subnetRef    : SpokeSubnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     deployDC     : false
@@ -134,8 +128,8 @@ module dc './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vms[2].vmname
-    subnetRef    : vms[2].subnetRef
+    vmname       : dcVmName
+    subnetRef    : onpremSubnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     domainName   : domainName
