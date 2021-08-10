@@ -5,6 +5,7 @@ param subnetRef string
 param githubPath string
 @secure()
 param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
+param domainName string
 
 @description('Size of the virtual machine.')
 param vmSize string 
@@ -102,6 +103,7 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
   }
 }
 
+// Will need to take a look at https://github.com/dsccommunity/DnsServerDsc to add DNS conditional forwarder through DSC
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
   parent: VM
   name: 'CreateADForest'
@@ -115,7 +117,7 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
       ModulesUrl: uri(githubPath, 'CreateADPDC.zip')
       ConfigurationFunction: 'CreateADPDC.ps1\\CreateADPDC'
       Properties: {
-        DomainName: 'test.local'
+        DomainName: domainName
         AdminCreds: {
           UserName: adminusername
           Password: 'PrivateSettingsRef:AdminPassword'

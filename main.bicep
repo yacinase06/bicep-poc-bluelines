@@ -35,6 +35,11 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @maxValue(1)
 param numberOfHosts int = 1
 
+@description('Set the name of the domain eg contoso.local')
+@minLength(3)
+param domainName string = 'contoso.local'
+
+
 var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
 
 var vnets = [
@@ -100,6 +105,7 @@ module dc './modules/dc.bicep' =[for i in range (1,numberOfHosts): {
     subnetRef    : onpremSubnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
+    domainName   : domainName
   }
   name: '${VmHostname}${i}'
   scope: rg
