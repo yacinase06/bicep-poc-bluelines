@@ -94,12 +94,12 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 module dc './modules/vm.bicep' =[for i in range (1,numberOfHosts): {
   params: {
-    adminusername            : VmAdminUsername
-    keyvault_name            : kv.outputs.keyvaultname
-    vmname                   : '${VmHostname}${i}'
-    subnet1ref               : onpremSubnetRef
-    vmSize                   : HostVmSize
-    githubPath               : githubPath
+    adminusername: VmAdminUsername
+    keyvault_name: kv.outputs.keyvaultname
+    vmname       : '${VmHostname}${i}'
+    subnetRef    : onpremSubnetRef
+    vmSize       : HostVmSize
+    githubPath   : githubPath
   }
   name: '${VmHostname}${i}'
   scope: rg

@@ -1,7 +1,7 @@
 param adminusername string
 param keyvault_name string 
 param vmname string
-param subnet1ref string
+param subnetRef string
 param githubPath string
 @secure()
 param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
@@ -50,11 +50,8 @@ resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
-        /*  publicIPAddress: {
-            id: pip.id
-          } */
           subnet: {
-            id: subnet1ref
+            id: subnetRef
           }
         }
       }
@@ -121,7 +118,8 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
 }
 
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
-  name: '${vmname}/cse'
+  parent: VM
+  name: 'Ext'
   location: location
   dependsOn:[
     VM
@@ -143,3 +141,4 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
 }
 
 // output dockerhostfqdn string = pip.properties.dnsSettings.fqdn
+
