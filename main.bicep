@@ -29,7 +29,7 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @minLength(3)
 param domainName string = 'contoso.local'
 
-var vm = [
+var vms = [
   {
   vmname   : 'hubjump'
   subnetRef: '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
@@ -105,8 +105,8 @@ module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[0].vmname
-    subnetRef    : vm[0].subnetRef
+    vmname       : vms[0].vmname
+    subnetRef    : vms[0].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     deployDC     : false
@@ -120,8 +120,8 @@ module spokeJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[1].vmname
-    subnetRef    : vm[1].subnetRef
+    vmname       : vms[1].vmname
+    subnetRef    : vms[1].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     deployDC     : false
@@ -134,8 +134,8 @@ module dc './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : vm[2].vmname
-    subnetRef    : vm[2].subnetRef
+    vmname       : vms[2].vmname
+    subnetRef    : vms[2].subnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     domainName   : domainName
