@@ -1,7 +1,7 @@
 @minLength(36)
 @maxLength(36)
 @description('Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv')
-param adUserId string  = '31bc51c1-c74e-4d61-ae56-6061de35f3b8'
+param adUserId string  = ''
 
 @description('Set the location for the resource group and all resources')
 @minLength(3)
