@@ -13,11 +13,6 @@ param Location string = 'UK South'
 @maxLength(10)
 param ResourceGroupName string = 'bluelines'
 
-@description('Set the prefix of the docker hosts')
-@minLength(2)
-@maxLength(8)
-param VmHostname string = 'dc'
-
 @description('Set the size for the VM')
 @minLength(6)
 param HostVmSize string = 'Standard_D2_v3'
@@ -30,54 +25,59 @@ param VmAdminUsername string = 'localadmin'
 @minLength(10)
 param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/'
 
-@description('Set the number of hosts to create')
-@minValue(1)
-@maxValue(1)
-param numberOfHosts int = 1
-
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
 param domainName string = 'contoso.local'
 
+var hubVmName           = 'hubjump'
+var hubSubnetRef        = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var hubBastionSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
 
-var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
+var spokeVmName     = 'spokejump'
+var SpokeSubnetRef  = '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
+
+var dcVmName               = 'dc1'
+var onpremSubnetRef        = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
+var onpremBastionSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[1].name}'
 
 var vnets = [
   {
     vnetName: 'hubVnet'
     vnetAddressPrefix: '172.15.0.0/16'
-    subnets: hubSubnets
+    subnets: [
+      {
+        name: 'main'
+        prefix: '172.15.1.0/24'
+      }
+      {
+        name: 'AzureBastionSubnet'
+        prefix: '172.15.2.0/27'
+      }
+    ]
   }
   {
     vnetName: 'spokeVnet'
     vnetAddressPrefix: '172.16.0.0/16'
-    subnets: spokeSubnets
+    subnets: [
+      {
+        name: 'main'
+        prefix: '172.16.1.0/24'
+      }
+    ]
   }
   {
     vnetName: 'onpremises'
     vnetAddressPrefix: '192.168.0.0/16'
-    subnets: onpremisesSubnets
-  }
-]
-
-var hubSubnets = [
-  {
-    name: 'main'
-    prefix: '172.15.1.0/24'
-  }
-]
-
-var spokeSubnets = [
-  {
-    name: 'main'
-    prefix: '172.16.1.0/24'
-  }
-]
-
-var onpremisesSubnets = [
-  {
-    name: 'main'
-    prefix: '192.168.199.0/24'
+    subnets: [
+      {
+        name: 'main'
+        prefix: '192.168.199.0/24'
+      }
+      {
+        name: 'AzureBastionSubnet'
+        prefix: '192.168.200.0/27'
+      }
+    ]
   }
 ]
 
@@ -97,20 +97,50 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
 }
 
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
-module dc './modules/dc.bicep' =[for i in range (1,numberOfHosts): {
+// It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
+module hubJumpServer './modules/winvm.bicep' = {
   params: {
     adminusername: VmAdminUsername
     keyvault_name: kv.outputs.keyvaultname
-    vmname       : '${VmHostname}${i}'
+    vmname       : hubVmName
+    subnetRef    : hubSubnetRef
+    vmSize       : HostVmSize
+    githubPath   : githubPath
+    deployDC     : false
+
+  }
+  name: 'hubjump'
+  scope: rg
+}  
+
+module spokeJumpServer './modules/winvm.bicep' = {
+  params: {
+    adminusername: VmAdminUsername
+    keyvault_name: kv.outputs.keyvaultname
+    vmname       : spokeVmName
+    subnetRef    : SpokeSubnetRef
+    vmSize       : HostVmSize
+    githubPath   : githubPath
+    deployDC     : false
+  }
+  name: 'spokejump'
+  scope: rg
+}  
+
+module dc './modules/winvm.bicep' = {
+  params: {
+    adminusername: VmAdminUsername
+    keyvault_name: kv.outputs.keyvaultname
+    vmname       : dcVmName
     subnetRef    : onpremSubnetRef
     vmSize       : HostVmSize
     githubPath   : githubPath
     domainName   : domainName
+    deployDC     : true
   }
-  name: '${VmHostname}${i}'
+  name: 'OnpremDC'
   scope: rg
-} ] 
-
+} 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
     vnetName         : vnet.vnetName
@@ -133,6 +163,26 @@ module vnetPeering './modules/vnetpeering.bicep' = {
   scope: rg
   name: 'vNetpeering'
 }
+
+module hubBastion './modules/bastion.bicep' = {
+params:{
+  bastionHostName: 'hubBastion'
+  location: Location
+  subnetRef: hubBastionSubnetRef
+}
+scope:rg
+name: 'hubBastion'
+}
+
+module onpremBastion './modules/bastion.bicep' = {
+  params:{
+    bastionHostName: 'onpremBastion'
+    location: Location
+    subnetRef: onpremBastionSubnetRef
+  }
+  scope:rg
+  name: 'onpremBastion'
+  }
 
 /* Deployment using bicep (via az cli)
 

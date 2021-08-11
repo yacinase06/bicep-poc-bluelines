@@ -1,17 +1,18 @@
-param adminusername string
-param keyvault_name string 
-param vmname string
-param subnetRef string
-param githubPath string
 @secure()
-param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
-param domainName string
-
 @description('Size of the virtual machine.')
 param vmSize string 
 
 @description('location for all resources')
 param location string = resourceGroup().location
+
+param adminusername string
+param keyvault_name string 
+param vmname string
+param subnetRef string
+param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
+param domainName string = 'contoso.local' // this has a default so that module calls do not need to supply a domain name when deployDC is set to false, as to-do-so is misleading.
+param deployDC bool
+param githubPath string
 
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
 var nicName = '${vmname}nic'
@@ -24,7 +25,6 @@ resource stg 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   }
   kind: 'Storage'
 }
-
 
 resource nInter 'Microsoft.Network/networkInterfaces@2021-02-01' = {
   name: nicName
@@ -104,7 +104,8 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
 }
 
 // Will need to take a look at https://github.com/dsccommunity/DnsServerDsc to add DNS conditional forwarder through DSC
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+// More info on DSC extension with ARM templates - https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-template
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (deployDC) {
   parent: VM
   name: 'CreateADForest'
   location: location
@@ -131,6 +132,3 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
     }
   }
 }
-
-// output dockerhostfqdn string = pip.properties.dnsSettings.fqdn
-
