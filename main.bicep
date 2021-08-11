@@ -1,7 +1,7 @@
 @minLength(36)
 @maxLength(36)
 @description('Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv')
-param adUserId string  = ''
+param adUserId string  = '31bc51c1-c74e-4d61-ae56-6061de35f3b8'
 
 @description('Set the location for the resource group and all resources')
 @minLength(3)
@@ -23,7 +23,7 @@ param VmAdminUsername string = 'localadmin'
 
 @description('Set the path to the github directory that has the custom script extension scripts')
 @minLength(10)
-param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/'
+param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/vpn/scripts/'
 
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
