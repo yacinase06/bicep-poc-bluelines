@@ -43,38 +43,32 @@ var vnets = [
   {
     vnetName: 'hubVnet'
     vnetAddressPrefix: '172.15.0.0/16'
-    subnets: hubSubnets
+    subnets: [
+      {
+        name: 'main'
+        prefix: '172.15.1.0/24'
+      }
+    ]
   }
   {
     vnetName: 'spokeVnet'
     vnetAddressPrefix: '172.16.0.0/16'
-    subnets: spokeSubnets
+    subnets: [
+      {
+        name: 'main'
+        prefix: '172.16.1.0/24'
+      }
+    ]
   }
   {
     vnetName: 'onpremises'
     vnetAddressPrefix: '192.168.0.0/16'
-    subnets: onpremisesSubnets
-  }
-]
-
-var hubSubnets = [
-  {
-    name: 'main'
-    prefix: '172.15.1.0/24'
-  }
-]
-
-var spokeSubnets = [
-  {
-    name: 'main'
-    prefix: '172.16.1.0/24'
-  }
-]
-
-var onpremisesSubnets = [
-  {
-    name: 'main'
-    prefix: '192.168.199.0/24'
+    subnets: [
+      {
+        name: 'main'
+        prefix: '192.168.199.0/24'
+      }
+    ]
   }
 ]
 

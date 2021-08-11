@@ -104,6 +104,7 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
 }
 
 // Will need to take a look at https://github.com/dsccommunity/DnsServerDsc to add DNS conditional forwarder through DSC
+// More info on DSC extension with ARM templates - https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-template
 resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (deployDC) {
   parent: VM
   name: 'CreateADForest'
