@@ -29,15 +29,16 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @minLength(3)
 param domainName string = 'contoso.local'
 
-var hubVmName       = 'hubjump'
-var hubSubnetRef    = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var hubVmName           = 'hubjump'
+var hubSubnetRef        = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var hubBastionSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
 
 var spokeVmName     = 'spokejump'
 var SpokeSubnetRef  = '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
 
-var dcVmName        = 'dc1'
-var onpremSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
-  
+var dcVmName               = 'dc1'
+var onpremSubnetRef        = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
+var onpremBastionSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[1].name}'
 
 var vnets = [
   {
@@ -47,6 +48,10 @@ var vnets = [
       {
         name: 'main'
         prefix: '172.15.1.0/24'
+      }
+      {
+        name: 'AzureBastionSubnet'
+        prefix: '172.15.2.0/27'
       }
     ]
   }
@@ -67,6 +72,10 @@ var vnets = [
       {
         name: 'main'
         prefix: '192.168.199.0/24'
+      }
+      {
+        name: 'AzureBastionSubnet'
+        prefix: '192.168.200.0/27'
       }
     ]
   }
@@ -154,6 +163,26 @@ module vnetPeering './modules/vnetpeering.bicep' = {
   scope: rg
   name: 'vNetpeering'
 }
+
+module hubBastion './modules/bastion.bicep' = {
+params:{
+  bastionHostName: 'hubBastion'
+  location: Location
+  subnetRef: hubBastionSubnetRef
+}
+scope:rg
+name: 'hubBastion'
+}
+
+module onpremBastion './modules/bastion.bicep' = {
+  params:{
+    bastionHostName: 'onpremBastion'
+    location: Location
+    subnetRef: onpremBastionSubnetRef
+  }
+  scope:rg
+  name: 'onpremBastion'
+  }
 
 /* Deployment using bicep (via az cli)
 
