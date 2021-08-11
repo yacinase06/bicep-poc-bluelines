@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.3.255.40792",
-      "templateHash": "12482771005330747677"
+      "templateHash": "6597193253173526514"
     }
   },
   "parameters": {
@@ -1104,8 +1104,8 @@
       "dependsOn": [
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]"
       ]
     },
