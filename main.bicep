@@ -29,6 +29,9 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @minLength(3)
 param domainName string = 'contoso.local'
 
+var onpremVPNVmName           = 'vpnvm'
+var publicIPAddressNameSuffix = 'vpnpip'
+
 var hubVmName           = 'hubjump'
 var hubSubnetRef        = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
 var hubBastionSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
@@ -95,7 +98,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'kv'
   scope: rg
 }
-
+/*
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 // It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
 module hubJumpServer './modules/winvm.bicep' = {
@@ -141,6 +144,23 @@ module dc './modules/winvm.bicep' = {
   name: 'OnpremDC'
   scope: rg
 } 
+
+*/
+
+module onpremVpnVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : onpremVPNVmName
+    subnet1ref               : onpremSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+    publicIPAddressNameSuffix: publicIPAddressNameSuffix
+  }
+  name: 'onpremVpnVM'
+  scope: rg
+} 
+
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
     vnetName         : vnet.vnetName
@@ -153,6 +173,7 @@ module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   scope: rg
 } ]
 
+/*
 module vnetPeering './modules/vnetpeering.bicep' = {
   params:{
     hubVnetId    : virtualnetwork[0].outputs.vnid
@@ -163,6 +184,7 @@ module vnetPeering './modules/vnetpeering.bicep' = {
   scope: rg
   name: 'vNetpeering'
 }
+
 
 module hubBastion './modules/bastion.bicep' = {
 params:{
@@ -183,6 +205,25 @@ module onpremBastion './modules/bastion.bicep' = {
   scope:rg
   name: 'onpremBastion'
   }
+*/
+module onpremNSG './modules/nsg.bicep' = {
+  name: 'hubNSG'
+  params:{
+    location: Location
+  }
+scope:rg
+}
+
+module onpremNsgAttachment './modules/nsgAttachment.bicep' = {
+  name: 'onpremNsgAttachment'
+  params:{
+    nsgId              : onpremNSG.outputs.onpremNsgId
+    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    subnetName         : virtualnetwork[2].outputs.subnets[0].name
+    vnetName           : virtualnetwork[2].outputs.vnName
+  }
+  scope:rg
+}
 
 /* Deployment using bicep (via az cli)
 
