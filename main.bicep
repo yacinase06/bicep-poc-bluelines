@@ -11,7 +11,7 @@ param Location string = 'UK South'
 @description('Set the resource group name, this will be created automatically')
 @minLength(3)
 @maxLength(10)
-param ResourceGroupName string = 'bluelines'
+param ResourceGroupName string = 'blueline'
 
 @description('Set the size for the VM')
 @minLength(6)
@@ -31,10 +31,10 @@ param domainName string = 'contoso.local'
 
 var onpremVPNVmName           = 'vpnvm'
 var publicIPAddressNameSuffix = 'vpnpip'
-
-var hubVmName           = 'hubjump'
-var hubSubnetRef        = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
-var hubBastionSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
+var hubDNSVmName              = 'hubdnsvm'
+var hubVmName                 = 'hubjump'
+var hubSubnetRef              = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var hubBastionSubnetRef       = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
 
 var spokeVmName     = 'spokejump'
 var SpokeSubnetRef  = '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
@@ -156,8 +156,22 @@ module onpremVpnVM './modules/vm.bicep' = {
     vmSize                   : HostVmSize
     githubPath               : githubPath
     publicIPAddressNameSuffix: publicIPAddressNameSuffix
+    deployPIP                : true
   }
   name: 'onpremVpnVM'
+  scope: rg
+} 
+
+module hubDnsVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : hubDNSVmName
+    subnet1ref               : hubSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+  }
+  name: 'hubDnsVM'
   scope: rg
 } 
 

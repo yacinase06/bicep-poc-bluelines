@@ -13,13 +13,14 @@ param vmSize string
 param location string = resourceGroup().location
 
 var storageAccountName = '${uniqueString(resourceGroup().id)}${vmname}sa'
-var nicName = '${vmname}myVMNic'
+var nicName = '${vmname}nic'
 
-param publicIPAddressNameSuffix string
+param publicIPAddressNameSuffix string = 'pip'
+param deployPIP bool = false
 
-var dnsLabelPrefix = 'dns-${uniqueString(resourceGroup().id)}-${publicIPAddressNameSuffix}'
+var dnsLabelPrefix = 'dns-${uniqueString(resourceGroup().id, vmname)}-${publicIPAddressNameSuffix}'
 
-resource pip 'Microsoft.Network/publicIPAddresses@2020-06-01' = {
+resource pip 'Microsoft.Network/publicIPAddresses@2020-06-01' = if (deployPIP) {
   name: publicIPAddressNameSuffix
   location: location
   properties: {
@@ -40,8 +41,8 @@ resource stg 'Microsoft.Storage/storageAccounts@2019-06-01' = {
 }
 
 
-resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
-  name: nicName
+resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = if (deployPIP) {
+  name: '${nicName}pip'
   location: location
 
   properties: {
@@ -53,6 +54,25 @@ resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = {
           publicIPAddress: {
             id: pip.id
           }
+          subnet: {
+            id: subnet1ref
+          }
+        }
+      }
+    ]
+  }
+}
+
+resource nInternoIP 'Microsoft.Network/networkInterfaces@2020-06-01' = if (!(deployPIP)) {
+  name: nicName
+  location: location
+
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'ipconfig1'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
           subnet: {
             id: subnet1ref
           }
@@ -89,7 +109,7 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
     networkProfile: {
       networkInterfaces: [
         {
-          id: nInter.id
+          id: deployPIP ? nInter.id : nInternoIP.id
         }
       ]
     }
@@ -135,4 +155,4 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
    }
 }
 
-output onpremPip string = pip.properties.dnsSettings.fqdn
+output onpremPip string = deployPIP ? pip.properties.dnsSettings.fqdn : ''
