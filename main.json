@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.3.255.40792",
-      "templateHash": "6827164278989977766"
+      "templateHash": "13795703339400983047"
     }
   },
   "parameters": {
@@ -78,35 +78,32 @@
       {
         "vnetName": "hubVnet",
         "vnetAddressPrefix": "172.15.0.0/16",
-        "subnets": "[variables('hubSubnets')]"
+        "subnets": [
+          {
+            "name": "main",
+            "prefix": "172.15.1.0/24"
+          }
+        ]
       },
       {
         "vnetName": "spokeVnet",
         "vnetAddressPrefix": "172.16.0.0/16",
-        "subnets": "[variables('spokeSubnets')]"
+        "subnets": [
+          {
+            "name": "main",
+            "prefix": "172.16.1.0/24"
+          }
+        ]
       },
       {
         "vnetName": "onpremises",
         "vnetAddressPrefix": "192.168.0.0/16",
-        "subnets": "[variables('onpremisesSubnets')]"
-      }
-    ],
-    "hubSubnets": [
-      {
-        "name": "main",
-        "prefix": "172.15.1.0/24"
-      }
-    ],
-    "spokeSubnets": [
-      {
-        "name": "main",
-        "prefix": "172.16.1.0/24"
-      }
-    ],
-    "onpremisesSubnets": [
-      {
-        "name": "main",
-        "prefix": "192.168.199.0/24"
+        "subnets": [
+          {
+            "name": "main",
+            "prefix": "192.168.199.0/24"
+          }
+        ]
       }
     ]
   },
@@ -1100,8 +1097,8 @@
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]"
       ]
     }
   ]
