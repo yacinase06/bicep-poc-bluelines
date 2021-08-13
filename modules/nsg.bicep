@@ -1,13 +1,14 @@
 
   param location string
+  param sourceAddressPrefix string = '*'
   
   resource sg 'Microsoft.Network/networkSecurityGroups@2020-06-01' = {
-    name: 'allowSSH'
+    name: 'Allow-tunnel-traffic'
     location: location
     properties: {
       securityRules: [
-        {
-          name: 'default-allow-ssh'
+        { // This rule to be removed - temporary to allow set up of IPsec tunnel
+          name: 'temp-allow-ssh' 
           'properties': {
             priority: 1000
             access: 'Allow'
@@ -16,6 +17,19 @@
             protocol: 'Tcp'
             sourcePortRange: '*'
             sourceAddressPrefix: '*'
+            destinationAddressPrefix: '*'
+          }
+        }
+        {
+          name: 'default-allow-tunnel-comms'
+          'properties': {
+            priority: 1100
+            access: 'Allow'
+            direction: 'Inbound'
+            destinationPortRange: '*'
+            protocol: '*'
+            sourcePortRange: '*'
+            sourceAddressPrefix: sourceAddressPrefix
             destinationAddressPrefix: '*'
           }
         }

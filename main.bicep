@@ -56,6 +56,10 @@ var vnets = [
         name: 'AzureBastionSubnet'
         prefix: '172.15.2.0/27'
       }
+      {
+        name: 'GatewaySubnet' 
+        prefix: '172.15.3.0/27'
+      }
     ]
   }
   {
@@ -187,6 +191,16 @@ module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   scope: rg
 } ]
 
+module hubgw './modules/vnetgw.bicep' = {
+  name: 'hubgw'
+  scope: rg
+  params:{
+    gatewaySubnetId: virtualnetwork[0].outputs.subnets[2].id
+    location: Location
+
+  }
+}
+
 /*
 module vnetPeering './modules/vnetpeering.bicep' = {
   params:{
@@ -224,6 +238,7 @@ module onpremNSG './modules/nsg.bicep' = {
   name: 'hubNSG'
   params:{
     location: Location
+    sourceAddressPrefix: hubgw.outputs.gwpip
   }
 scope:rg
 }
