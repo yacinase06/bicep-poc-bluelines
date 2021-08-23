@@ -23,12 +23,12 @@ param VmAdminUsername string = 'localadmin'
 
 @description('Set the path to the github directory that has the custom script extension scripts')
 @minLength(10)
-param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/vpn/scripts/'
+param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/passwordgen/scripts/'
 
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
 param domainName string = 'contoso.local'
-
+/*
 var onpremVPNVmName           = 'vpnvm'
 var publicIPAddressNameSuffix = 'vpnpip'
 var hubDNSVmName              = 'hubdnsvm'
@@ -87,6 +87,7 @@ var vnets = [
     ]
   }
 ]
+*/
 
 targetScope = 'subscription'
 
@@ -95,6 +96,25 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: Location
 }
 
+/*module passgen 'modules/passgen.bicep' = {
+  scope: rg
+  name: 'passgen'
+  params: {
+    secretName: 'vmname1'
+  }
+}*/
+
+module pwdgen 'modules/multipass.bicep' =[for i in range (1,3):{
+  scope: rg
+  name : 'pwd${i}'
+params: {
+  secretName: 'secret${i}'
+}  
+}]
+
+// output secretVal string = passgen.outputs.secretVal
+
+/*
  module kv './modules/kv.bicep' = {
   params: {
     adUserId: adUserId
@@ -102,7 +122,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'kv'
   scope: rg
 }
-/*
+
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 // It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
 module hubJumpServer './modules/winvm.bicep' = {
@@ -150,7 +170,7 @@ module dc './modules/winvm.bicep' = {
 } 
 
 */
-
+/*
 module onpremVpnVM './modules/vm.bicep' = {
   params: {
     adminusername            : VmAdminUsername
@@ -233,7 +253,7 @@ module onpremBastion './modules/bastion.bicep' = {
   scope:rg
   name: 'onpremBastion'
   }
-*/
+
 module onpremNSG './modules/nsg.bicep' = {
   name: 'hubNSG'
   params:{
@@ -253,6 +273,8 @@ module onpremNsgAttachment './modules/nsgAttachment.bicep' = {
   }
   scope:rg
 }
+
+*/
 
 /* Deployment using bicep (via az cli)
 
