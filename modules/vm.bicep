@@ -4,7 +4,7 @@ param vmname string
 param subnet1ref string
 param githubPath string
 @secure()
-param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
+//param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
 
 @description('Size of the virtual machine.')
 param vmSize string 
@@ -19,6 +19,15 @@ param publicIPAddressNameSuffix string = 'pip'
 param deployPIP bool = false
 
 var dnsLabelPrefix = 'dns-${uniqueString(resourceGroup().id, vmname)}-${publicIPAddressNameSuffix}'
+
+
+module passgen '../modules/passgen.bicep' = {
+  name: vmname
+  params: { 
+    secretLen : 8
+    sourceName: vmname
+  }
+}
 
 resource pip 'Microsoft.Network/publicIPAddresses@2020-06-01' = if (deployPIP) {
   name: publicIPAddressNameSuffix
@@ -92,7 +101,7 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
     osProfile: {
       computerName: vmname
       adminUsername: adminusername
-      adminPassword: adminPassword
+      adminPassword: passgen.outputs.secretVal
     }
     storageProfile: {
       imageReference: {
@@ -126,7 +135,7 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
   name: '${keyvault_name}/${vmname}-admin-password'
   properties: {
     contentType: 'securestring'
-    value: adminPassword
+    value: passgen.outputs.secretVal
     attributes: {
       enabled: true
     }

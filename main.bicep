@@ -11,7 +11,7 @@ param Location string = 'UK South'
 @description('Set the resource group name, this will be created automatically')
 @minLength(3)
 @maxLength(10)
-param ResourceGroupName string = 'blueline'
+param ResourceGroupName string = 'bluelines'
 
 @description('Set the size for the VM')
 @minLength(6)
@@ -28,7 +28,7 @@ param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-po
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
 param domainName string = 'contoso.local'
-/*
+
 var onpremVPNVmName           = 'vpnvm'
 var publicIPAddressNameSuffix = 'vpnpip'
 var hubDNSVmName              = 'hubdnsvm'
@@ -87,7 +87,7 @@ var vnets = [
     ]
   }
 ]
-*/
+
 
 targetScope = 'subscription'
 
@@ -96,25 +96,27 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: Location
 }
 
-/*module passgen 'modules/passgen.bicep' = {
+/*
+module passgen 'modules/passgen.bicep' = {
   scope: rg
   name: 'passgen'
   params: {
     secretName: 'vmname1'
   }
-}*/
+}
 
-module pwdgen 'modules/multipass.bicep' =[for i in range (1,3):{
+
+module pwdgen 'modules/multipass.bicep' =[for i in range (1,1):{
   scope: rg
   name : 'pwd${i}'
 params: {
   secretName: 'secret${i}'
+  secretLen: 4
 }  
 }]
+*/
 
-// output secretVal string = passgen.outputs.secretVal
 
-/*
  module kv './modules/kv.bicep' = {
   params: {
     adUserId: adUserId
@@ -125,52 +127,56 @@ params: {
 
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 // It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
-module hubJumpServer './modules/winvm.bicep' = {
-  params: {
-    adminusername: VmAdminUsername
-    keyvault_name: kv.outputs.keyvaultname
-    vmname       : hubVmName
-    subnetRef    : hubSubnetRef
-    vmSize       : HostVmSize
-    githubPath   : githubPath
-    deployDC     : false
 
-  }
-  name: 'hubjump'
-  scope: rg
-}  
 
-module spokeJumpServer './modules/winvm.bicep' = {
-  params: {
-    adminusername: VmAdminUsername
-    keyvault_name: kv.outputs.keyvaultname
-    vmname       : spokeVmName
-    subnetRef    : SpokeSubnetRef
-    vmSize       : HostVmSize
-    githubPath   : githubPath
-    deployDC     : false
-  }
-  name: 'spokejump'
-  scope: rg
-}  
+// module hubJumpServer './modules/winvm.bicep' = {
+//   params: {
+//     adminusername: VmAdminUsername
+//     keyvault_name: kv.outputs.keyvaultname
+//     vmname       : hubVmName
+//     subnetRef    : hubSubnetRef
+//     vmSize       : HostVmSize
+//     githubPath   : githubPath
+//     deployDC     : false
 
-module dc './modules/winvm.bicep' = {
-  params: {
-    adminusername: VmAdminUsername
-    keyvault_name: kv.outputs.keyvaultname
-    vmname       : dcVmName
-    subnetRef    : onpremSubnetRef
-    vmSize       : HostVmSize
-    githubPath   : githubPath
-    domainName   : domainName
-    deployDC     : true
-  }
-  name: 'OnpremDC'
-  scope: rg
-} 
+//   }
+//   name: 'hubjump'
+//   scope: rg
+// }  
 
-*/
-/*
+
+// module spokeJumpServer './modules/winvm.bicep' = {
+//   params: {
+//     adminusername: VmAdminUsername
+//     keyvault_name: kv.outputs.keyvaultname
+//     vmname       : spokeVmName
+//     subnetRef    : SpokeSubnetRef
+//     vmSize       : HostVmSize
+//     githubPath   : githubPath
+//     deployDC     : false
+//   }
+//   name: 'spokejump'
+//   scope: rg
+// } 
+
+
+// module dc './modules/winvm.bicep' = {
+//   params: {
+//     adminusername: VmAdminUsername
+//     keyvault_name: kv.outputs.keyvaultname
+//     vmname       : dcVmName
+//     subnetRef    : onpremSubnetRef
+//     vmSize       : HostVmSize
+//     githubPath   : githubPath
+//     domainName   : domainName
+//     deployDC     : true
+//   }
+//   name: 'OnpremDC'
+//   scope: rg
+// } 
+
+
+
 module onpremVpnVM './modules/vm.bicep' = {
   params: {
     adminusername            : VmAdminUsername
@@ -185,19 +191,21 @@ module onpremVpnVM './modules/vm.bicep' = {
   name: 'onpremVpnVM'
   scope: rg
 } 
+ 
 
-module hubDnsVM './modules/vm.bicep' = {
-  params: {
-    adminusername            : VmAdminUsername
-    keyvault_name            : kv.outputs.keyvaultname
-    vmname                   : hubDNSVmName
-    subnet1ref               : hubSubnetRef
-    vmSize                   : HostVmSize
-    githubPath               : githubPath
-  }
-  name: 'hubDnsVM'
-  scope: rg
-} 
+// module hubDnsVM './modules/vm.bicep' = {
+//   params: {
+//     adminusername            : VmAdminUsername
+//     keyvault_name            : kv.outputs.keyvaultname
+//     vmname                   : hubDNSVmName
+//     subnet1ref               : hubSubnetRef
+//     vmSize                   : HostVmSize
+//     githubPath               : githubPath
+//   }
+//   name: 'hubDnsVM'
+//   scope: rg
+// } 
+
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
@@ -211,15 +219,16 @@ module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   scope: rg
 } ]
 
-module hubgw './modules/vnetgw.bicep' = {
-  name: 'hubgw'
-  scope: rg
-  params:{
-    gatewaySubnetId: virtualnetwork[0].outputs.subnets[2].id
-    location: Location
 
-  }
-}
+// module hubgw './modules/vnetgw.bicep' = {
+//   name: 'hubgw'
+//   scope: rg
+//   params:{
+//     gatewaySubnetId: virtualnetwork[0].outputs.subnets[2].id
+//     location: Location
+
+//   }
+// }
 
 /*
 module vnetPeering './modules/vnetpeering.bicep' = {
@@ -233,17 +242,19 @@ module vnetPeering './modules/vnetpeering.bicep' = {
   name: 'vNetpeering'
 }
 
+*/
 
-module hubBastion './modules/bastion.bicep' = {
-params:{
-  bastionHostName: 'hubBastion'
-  location: Location
-  subnetRef: hubBastionSubnetRef
-}
-scope:rg
-name: 'hubBastion'
-}
+// module hubBastion './modules/bastion.bicep' = {
+// params:{
+//   bastionHostName: 'hubBastion'
+//   location: Location
+//   subnetRef: hubBastionSubnetRef
+// }
+// scope:rg
+// name: 'hubBastion'
+// }
 
+/*
 module onpremBastion './modules/bastion.bicep' = {
   params:{
     bastionHostName: 'onpremBastion'
