@@ -11,7 +11,7 @@ param Location string = 'UK South'
 @description('Set the resource group name, this will be created automatically')
 @minLength(3)
 @maxLength(10)
-param ResourceGroupName string = 'blueline'
+param ResourceGroupName string = 'bluelines'
 
 @description('Set the size for the VM')
 @minLength(6)
@@ -166,18 +166,18 @@ module onpremVpnVM './modules/vm.bicep' = {
   scope: rg
 } 
 
-module hubDnsVM './modules/vm.bicep' = {
-  params: {
-    adminusername            : VmAdminUsername
-    keyvault_name            : kv.outputs.keyvaultname
-    vmname                   : hubDNSVmName
-    subnet1ref               : hubSubnetRef
-    vmSize                   : HostVmSize
-    githubPath               : githubPath
-  }
-  name: 'hubDnsVM'
-  scope: rg
-} 
+// module hubDnsVM './modules/vm.bicep' = {
+//   params: {
+//     adminusername            : VmAdminUsername
+//     keyvault_name            : kv.outputs.keyvaultname
+//     vmname                   : hubDNSVmName
+//     subnet1ref               : hubSubnetRef
+//     vmSize                   : HostVmSize
+//     githubPath               : githubPath
+//   }
+//   name: 'hubDnsVM'
+//   scope: rg
+// } 
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
