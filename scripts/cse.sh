@@ -25,7 +25,7 @@ sudo sed -i '/'net.ipv4.ip_forward'/s/^#//g' /etc/sysctl.conf
 #echo "      leftsubnet=$6" >> /etc/ipsec.conf
 #echo "      right=$3" >> /etc/ipsec.conf
 #echo "      rightsubnet=$4" >> /etc/ipsec.conf
-#echo "      auto=start" >> /etc/ipsec.conf
+#echo "      auto=add" >> /etc/ipsec.conf
 
 # Edit secrets file add psk
 #echo "$2 $3 : PSK \"$5\" " >> /etc/ipsec.secrets
