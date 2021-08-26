@@ -1,5 +1,6 @@
 #!/bin/sh
 # This is to install required components to stand up VPN and other services 
+sleep 10
 sudo apt-get update --yes
 sleep 5 
 sudo apt-get install strongswan --yes
