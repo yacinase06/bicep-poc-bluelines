@@ -1,9 +1,8 @@
 param name string
 param vnetgwid string
 param lngid string
-param keyvault_name string
+param psk string
 
-var psk = '${uniqueString(resourceGroup().id,vnetgwid,lngid)}aA1!'
 
 resource conn 'Microsoft.Network/connections@2021-02-01' = {
   location: resourceGroup().location
@@ -29,16 +28,5 @@ resource conn 'Microsoft.Network/connections@2021-02-01' = {
        properties:{
        }
      }
-  }
-}
-
-resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' = {
-  name: '${keyvault_name}/${name}-psk'
-  properties: {
-    contentType: 'securestring'
-    value: psk
-    attributes: {
-      enabled: true
-    }
   }
 }

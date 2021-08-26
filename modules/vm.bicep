@@ -5,6 +5,11 @@ param subnet1ref string
 param githubPath string
 @secure()
 param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
+param vpnVars object = 	{
+  psk            : null
+  gwip           : null
+  gwaddressPrefix: null
+}
 
 @description('Size of the virtual machine.')
 param vmSize string 
@@ -17,6 +22,7 @@ var nicName = '${vmname}nic'
 
 param publicIPAddressNameSuffix string = 'pip'
 param deployPIP bool = false
+param deployVpn bool = false
 
 var dnsLabelPrefix = 'dns-${uniqueString(resourceGroup().id, vmname)}-${publicIPAddressNameSuffix}'
 
@@ -133,7 +139,7 @@ resource keyvaultname_secretname 'Microsoft.keyvault/vaults/secrets@2019-09-01' 
   }
 }
 
-resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (deployVpn) {
   name: '${vmname}/cse'
   location: location
   dependsOn:[
@@ -149,7 +155,8 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
       fileUris: [
         '${githubPath}cse.sh'
       ]
-      commandToExecute: 'sh cse.sh'
+      commandToExecute: 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix}  '
+
     }
     
    }

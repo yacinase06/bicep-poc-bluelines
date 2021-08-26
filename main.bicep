@@ -43,6 +43,8 @@ var dcVmName               = 'dc1'
 var onpremSubnetRef        = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
 var onpremBastionSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[1].name}'
 
+
+
 var vnets = [
   {
     vnetName: 'hubVnet'
@@ -88,6 +90,13 @@ var vnets = [
   }
 ]
 
+var vpnVars = {
+    psk            : psk.outputs.psk
+    gwip           : hubgw.outputs.gwpip
+    gwaddressPrefix: virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+  }
+
+
 targetScope = 'subscription'
 
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -102,6 +111,19 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'kv'
   scope: rg
 }
+
+module psk 'modules/psk.bicep' = {
+  scope: rg
+  name: 'psk'
+  params: {
+    keyvault_name: kv.outputs.keyvaultname
+    onpremSubnetRef: onpremSubnetRef
+    name: 'azure-conn-'
+  }
+}
+
+
+
 /*
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 // It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
@@ -161,6 +183,8 @@ module onpremVpnVM './modules/vm.bicep' = {
     githubPath               : githubPath
     publicIPAddressNameSuffix: publicIPAddressNameSuffix
     deployPIP                : true
+    deployVpn                : true
+    vpnVars                  : vpnVars
   }
   name: 'onpremVpnVM'
   scope: rg
@@ -174,6 +198,7 @@ module hubDnsVM './modules/vm.bicep' = {
     subnet1ref               : hubSubnetRef
     vmSize                   : HostVmSize
     githubPath               : githubPath
+
   }
   name: 'hubDnsVM'
   scope: rg
@@ -215,10 +240,10 @@ module vpnconn 'modules/vpnconn.bicep' = {
   scope: rg
   name: 'onprem-azure-conn'
   params: {
-    keyvault_name: kv.outputs.keyvaultname
-    lngid        : localNetworkGW.outputs.lngid
-    vnetgwid     : hubgw.outputs.vnetgwid
-    name         : 'onprem-azure-conn'
+    psk     : psk.outputs.psk
+    lngid   : localNetworkGW.outputs.lngid
+    vnetgwid: hubgw.outputs.vnetgwid
+    name    : 'onprem-azure-conn'
     
   }
 }
@@ -269,7 +294,7 @@ module onpremNsgAttachment './modules/nsgAttachment.bicep' = {
   name: 'onpremNsgAttachment'
   params:{
     nsgId              : onpremNSG.outputs.onpremNsgId
-    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix                    
     subnetName         : virtualnetwork[2].outputs.subnets[0].name
     vnetName           : virtualnetwork[2].outputs.vnName
   }
