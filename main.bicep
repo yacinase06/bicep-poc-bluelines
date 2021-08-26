@@ -191,19 +191,19 @@ module onpremVpnVM './modules/vm.bicep' = {
   scope: rg
 } 
 
-module hubDnsVM './modules/vm.bicep' = {
-  params: {
-    adminusername            : VmAdminUsername
-    keyvault_name            : kv.outputs.keyvaultname
-    vmname                   : hubDNSVmName
-    subnet1ref               : hubSubnetRef
-    vmSize                   : HostVmSize
-    githubPath               : githubPath
+// module hubDnsVM './modules/vm.bicep' = {
+//   params: {
+//     adminusername            : VmAdminUsername
+//     keyvault_name            : kv.outputs.keyvaultname
+//     vmname                   : hubDNSVmName
+//     subnet1ref               : hubSubnetRef
+//     vmSize                   : HostVmSize
+//     githubPath               : githubPath
 
-  }
-  name: 'hubDnsVM'
-  scope: rg
-} 
+//   }
+//   name: 'hubDnsVM'
+//   scope: rg
+// } 
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
