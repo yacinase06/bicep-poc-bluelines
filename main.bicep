@@ -91,9 +91,10 @@ var vnets = [
 ]
 
 var vpnVars = {
-    psk            : psk.outputs.psk
-    gwip           : hubgw.outputs.gwpip
-    gwaddressPrefix: virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+    psk                : psk.outputs.psk
+    gwip               : hubgw.outputs.gwpip
+    gwaddressPrefix    : virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+    onpremAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
   }
 
 
@@ -118,7 +119,7 @@ module psk 'modules/psk.bicep' = {
   params: {
     keyvault_name: kv.outputs.keyvaultname
     onpremSubnetRef: onpremSubnetRef
-    name: 'azure-conn-'
+    name: 'azure-conn'
   }
 }
 
