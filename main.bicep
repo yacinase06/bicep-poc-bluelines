@@ -166,18 +166,18 @@ module onpremVpnVM './modules/vm.bicep' = {
   scope: rg
 } 
 
-// module hubDnsVM './modules/vm.bicep' = {
-//   params: {
-//     adminusername            : VmAdminUsername
-//     keyvault_name            : kv.outputs.keyvaultname
-//     vmname                   : hubDNSVmName
-//     subnet1ref               : hubSubnetRef
-//     vmSize                   : HostVmSize
-//     githubPath               : githubPath
-//   }
-//   name: 'hubDnsVM'
-//   scope: rg
-// } 
+module hubDnsVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : hubDNSVmName
+    subnet1ref               : hubSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+  }
+  name: 'hubDnsVM'
+  scope: rg
+} 
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
@@ -201,6 +201,27 @@ module hubgw './modules/vnetgw.bicep' = {
   }
 }
 
+module localNetworkGW 'modules/lng.bicep' = {
+  scope: rg
+  name: 'onpremgw'
+  params: {
+    addressSpace:  virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    ipAddress: onpremVpnVM.outputs.onpremIP
+    name: 'onpremgw'
+  }
+}
+
+module vpnconn 'modules/vpnconn.bicep' = {
+  scope: rg
+  name: 'onprem-azure-conn'
+  params: {
+    keyvault_name: kv.outputs.keyvaultname
+    lngid        : localNetworkGW.outputs.lngid
+    vnetgwid     : hubgw.outputs.vnetgwid
+    name         : 'onprem-azure-conn'
+    
+  }
+}
 /*
 module vnetPeering './modules/vnetpeering.bicep' = {
   params:{
@@ -234,6 +255,7 @@ module onpremBastion './modules/bastion.bicep' = {
   name: 'onpremBastion'
   }
 */
+
 module onpremNSG './modules/nsg.bicep' = {
   name: 'hubNSG'
   params:{

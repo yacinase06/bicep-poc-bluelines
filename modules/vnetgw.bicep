@@ -28,9 +28,11 @@ resource vnetgw 'Microsoft.Network/virtualNetworkGateways@2021-02-01' = {
     enableBgp: true
     bgpSettings: {
       asn: 65050
+
     }
   }
 }
+
 
 resource gwpip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
   name: 'gwpip'
@@ -44,3 +46,4 @@ resource gwpip 'Microsoft.Network/publicIPAddresses@2021-02-01' = {
 }
 
 output gwpip string = gwpip.properties.ipAddress
+output vnetgwid string = vnetgw.id

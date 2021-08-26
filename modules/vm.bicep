@@ -156,3 +156,4 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
 }
 
 output onpremPip string = deployPIP ? pip.properties.dnsSettings.fqdn : ''
+output onpremIP string =  deployPIP ? pip.properties.ipAddress : ''
