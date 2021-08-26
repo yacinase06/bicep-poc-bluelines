@@ -25,7 +25,7 @@ echo "      left=$1" >> /etc/ipsec.conf
 echo "      leftsubnet=$6" >> /etc/ipsec.conf
 echo "      right=$3" >> /etc/ipsec.conf
 echo "      rightsubnet=$4" >> /etc/ipsec.conf
-echo "      auto=add" >> /etc/ipsec.conf
+echo "      auto=auto" >> /etc/ipsec.conf
 
 # Edit secrets file add psk
 echo "$2 $3 : PSK \"$5\" " >> /etc/ipsec.secrets
@@ -37,4 +37,3 @@ sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/ch
 
 # start strongSwan 
 ipsec restart
-ipsec up azure
