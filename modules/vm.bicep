@@ -120,7 +120,6 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
         {
           id: deployPIP ? nInter.id : nInternoIP.id
           }
-        }
       ]
     }
     diagnosticsProfile: {
@@ -159,8 +158,7 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (dep
       fileUris: [
         '${githubPath}cse.sh'
       ]
-      commandToExecute: 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${pip.properties.ipAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix} ${vpnVars.psk} '
-
+      commandToExecute: deployVpn ? 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${pip.properties.ipAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix} ${vpnVars.psk} ' : ''
     }
     
    }

@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is to install required components to stand up VPN and other services 
 sudo apt-get update
-sudo apt install strongswan --yes
+sudo apt-get install strongswan --yes
 sudo sed -i '/'net.ipv4.conf.all.accept_redirects'/s/^#//g' /etc/sysctl.conf 
 sudo sed -i '/'net.ipv4.conf.all.send_redirects'/s/^#//g' /etc/sysctl.conf 
 sudo sed -i '/'net.ipv4.ip_forward'/s/^#//g' /etc/sysctl.conf 
