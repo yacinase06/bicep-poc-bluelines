@@ -32,8 +32,8 @@ echo "$2 $3 : PSK \"$5\" " >> /etc/ipsec.secrets
 
 # edit charon to increase retries (to allow time for Virtual Network Gateway to deploy)
 
-sed -i 's/    # retransmit_tries = 5/retransmit_tries = 100/' /etc/strongswan.d/charon.conf
-sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/charon.conf
+sudo sed -i 's/    # retransmit_tries = 5/retransmit_tries = 100/' /etc/strongswan.d/charon.conf
+sudo sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/charon.conf
 
 # start strongSwan 
-ipsec restart
+sudo ipsec restart
