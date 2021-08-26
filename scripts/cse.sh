@@ -1,12 +1,12 @@
 #!/bin/sh
 # This is to install required components to stand up VPN and other services 
-#sudo apt-get update -y
-#sleep 5 
-#sudo apt-get install strongswan --yes
-#sleep 5
-#sudo sed -i '/'net.ipv4.conf.all.accept_redirects'/s/^#//g' /etc/sysctl.conf 
-#sudo sed -i '/'net.ipv4.conf.all.send_redirects'/s/^#//g' /etc/sysctl.conf 
-#sudo sed -i '/'net.ipv4.ip_forward'/s/^#//g' /etc/sysctl.conf 
+sudo apt-get update -y
+sleep 5 
+sudo apt-get install strongswan --yes
+sleep 5
+sudo sed -i '/'net.ipv4.conf.all.accept_redirects'/s/^#//g' /etc/sysctl.conf 
+sudo sed -i '/'net.ipv4.conf.all.send_redirects'/s/^#//g' /etc/sysctl.conf 
+sudo sed -i '/'net.ipv4.ip_forward'/s/^#//g' /etc/sysctl.conf 
 
 # configure ipsec.conf
 rm /etc/ipsec.conf
@@ -36,5 +36,5 @@ sed -i 's/    # retransmit_tries = 5/retransmit_tries = 100/' /etc/strongswan.d/
 sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/charon.conf
 
 # start strongSwan 
-ipsec start
+ipsec restart
 ipsec up azure
