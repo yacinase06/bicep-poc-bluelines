@@ -52,11 +52,13 @@ resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = if (deployPIP
   location: location
 
   properties: {
+    enableIPForwarding: deployVpn ? true : false
     ipConfigurations: [
       {
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
+
           publicIPAddress: {
             id: pip.id
           }
@@ -72,12 +74,13 @@ resource nInter 'Microsoft.Network/networkInterfaces@2020-06-01' = if (deployPIP
 resource nInternoIP 'Microsoft.Network/networkInterfaces@2020-06-01' = if (!(deployPIP)) {
   name: nicName
   location: location
-
   properties: {
+    enableIPForwarding: deployVpn ? true : false
     ipConfigurations: [
       {
         name: 'ipconfig1'
         properties: {
+
           privateIPAllocationMethod: 'Dynamic'
           subnet: {
             id: subnet1ref
@@ -116,6 +119,7 @@ resource VM 'Microsoft.Compute/virtualMachines@2020-06-01' = {
       networkInterfaces: [
         {
           id: deployPIP ? nInter.id : nInternoIP.id
+          }
         }
       ]
     }
@@ -155,7 +159,7 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (dep
       fileUris: [
         '${githubPath}cse.sh'
       ]
-      commandToExecute: 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix}  '
+      commandToExecute: 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${pip.properties.ipAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix} ${vpnVars.psk} '
 
     }
     
