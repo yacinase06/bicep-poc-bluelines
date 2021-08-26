@@ -35,5 +35,5 @@ sed -i 's/    # retransmit_tries = 5/retransmit_tries = 100/' /etc/strongswan.d/
 sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/charon.conf
 
 # start strongSwan 
-ipsec restart
+ipsec start
 ipsec up azure
