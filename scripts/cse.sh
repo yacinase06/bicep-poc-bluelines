@@ -1,6 +1,6 @@
 #!/bin/sh
 # This is to install required components to stand up VPN and other services 
-sudo apt-get update -y
+sudo apt-get update --yes
 sleep 5 
 sudo apt-get install strongswan --yes
 sleep 5
@@ -25,7 +25,7 @@ echo "      left=$1" >> /etc/ipsec.conf
 echo "      leftsubnet=$6" >> /etc/ipsec.conf
 echo "      right=$3" >> /etc/ipsec.conf
 echo "      rightsubnet=$4" >> /etc/ipsec.conf
-echo "      auto=auto" >> /etc/ipsec.conf
+echo "      auto=start" >> /etc/ipsec.conf
 
 # Edit secrets file add psk
 echo "$2 $3 : PSK \"$5\" " >> /etc/ipsec.secrets
