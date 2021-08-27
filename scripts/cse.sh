@@ -25,7 +25,7 @@ echo "      esp=aes256-sha1-modp1024!" >> /etc/ipsec.conf
 echo "      left=$1" >> /etc/ipsec.conf
 echo "      leftsubnet=$6" >> /etc/ipsec.conf
 echo "      right=$3" >> /etc/ipsec.conf
-echo "      rightsubnet=$4" >> /etc/ipsec.conf
+echo "      rightsubnet=$4,$7" >> /etc/ipsec.conf
 echo "      auto=start" >> /etc/ipsec.conf
 
 # Edit secrets file add psk

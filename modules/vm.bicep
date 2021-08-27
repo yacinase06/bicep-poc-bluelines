@@ -158,7 +158,7 @@ resource cse 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = if (dep
       fileUris: [
         '${githubPath}cse.sh'
       ]
-      commandToExecute: deployVpn ? 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${pip.properties.ipAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix} ${vpnVars.psk} ${vpnVars.onpremAddressPrefix}' : ''
+      commandToExecute: deployVpn ? 'sh cse.sh ${nInter.properties.ipConfigurations[0].properties.privateIPAddress} ${pip.properties.ipAddress} ${vpnVars.gwip} ${vpnVars.gwaddressPrefix} ${vpnVars.psk} ${vpnVars.onpremAddressPrefix} ${vpnVars.spokeAddressPrefix}' : ''
     }
     
    }

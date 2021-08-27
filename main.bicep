@@ -93,6 +93,7 @@ var vpnVars = {
     gwip               : hubgw.outputs.gwpip
     gwaddressPrefix    : virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
     onpremAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    spokeAddressPrefix : virtualnetwork[1].outputs.subnets[0].properties.addressPrefix
   }
 
 
