@@ -6,9 +6,11 @@ param githubPath string
 @secure()
 param adminPassword string = '${uniqueString(resourceGroup().id)}aA1!' // aA1! to meet complexity requirements
 param vpnVars object = 	{
-  psk            : null
-  gwip           : null
-  gwaddressPrefix: null
+  psk                : null
+  gwip               : null
+  gwaddressPrefix    : null
+  onpremAddressPrefix: null
+  spokeAddressPrefix : null
 }
 
 @description('Size of the virtual machine.')

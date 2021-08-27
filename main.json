@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.3.255.40792",
-      "templateHash": "6750590903738279900"
+      "templateHash": "2689500952868467260"
     }
   },
   "parameters": {
@@ -29,7 +29,7 @@
     },
     "ResourceGroupName": {
       "type": "string",
-      "defaultValue": "bluelines",
+      "defaultValue": "blueline",
       "maxLength": 10,
       "minLength": 3,
       "metadata": {
@@ -1045,7 +1045,8 @@
               "psk": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'psk'), '2019-10-01').outputs.psk.value]",
               "gwip": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'hubgw'), '2019-10-01').outputs.gwpip.value]",
               "gwaddressPrefix": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName), '2019-10-01').outputs.subnets.value[0].properties.addressPrefix]",
-              "onpremAddressPrefix": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName), '2019-10-01').outputs.subnets.value[0].properties.addressPrefix]"
+              "onpremAddressPrefix": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName), '2019-10-01').outputs.subnets.value[0].properties.addressPrefix]",
+              "spokeAddressPrefix": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName), '2019-10-01').outputs.subnets.value[0].properties.addressPrefix]"
             }
           }
         },
@@ -1056,7 +1057,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.3.255.40792",
-              "templateHash": "7163717433056902325"
+              "templateHash": "9268621429243851203"
             }
           },
           "parameters": {
@@ -1084,7 +1085,9 @@
               "defaultValue": {
                 "psk": null,
                 "gwip": null,
-                "gwaddressPrefix": null
+                "gwaddressPrefix": null,
+                "onpremAddressPrefix": null,
+                "spokeAddressPrefix": null
               }
             },
             "vmSize": {
@@ -1264,7 +1267,7 @@
                   "fileUris": [
                     "[format('{0}cse.sh', parameters('githubPath'))]"
                   ],
-                  "commandToExecute": "[if(parameters('deployVpn'), format('sh cse.sh {0} {1} {2} {3} {4} {5}', reference(resourceId('Microsoft.Network/networkInterfaces', format('{0}pip', variables('nicName')))).ipConfigurations[0].properties.privateIPAddress, reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameSuffix'))).ipAddress, parameters('vpnVars').gwip, parameters('vpnVars').gwaddressPrefix, parameters('vpnVars').psk, parameters('vpnVars').onpremAddressPrefix), '')]"
+                  "commandToExecute": "[if(parameters('deployVpn'), format('sh cse.sh {0} {1} {2} {3} {4} {5} {6}', reference(resourceId('Microsoft.Network/networkInterfaces', format('{0}pip', variables('nicName')))).ipConfigurations[0].properties.privateIPAddress, reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameSuffix'))).ipAddress, parameters('vpnVars').gwip, parameters('vpnVars').gwaddressPrefix, parameters('vpnVars').psk, parameters('vpnVars').onpremAddressPrefix, parameters('vpnVars').spokeAddressPrefix), '')]"
                 }
               },
               "dependsOn": [
@@ -1292,6 +1295,7 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'psk')]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[2].vnetName)]"
@@ -1334,7 +1338,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.3.255.40792",
-              "templateHash": "7163717433056902325"
+              "templateHash": "9268621429243851203"
             }
           },
           "parameters": {
@@ -1362,7 +1366,9 @@
               "defaultValue": {
                 "psk": null,
                 "gwip": null,
-                "gwaddressPrefix": null
+                "gwaddressPrefix": null,
+                "onpremAddressPrefix": null,
+                "spokeAddressPrefix": null
               }
             },
             "vmSize": {
@@ -1542,7 +1548,7 @@
                   "fileUris": [
                     "[format('{0}cse.sh', parameters('githubPath'))]"
                   ],
-                  "commandToExecute": "[if(parameters('deployVpn'), format('sh cse.sh {0} {1} {2} {3} {4} {5}', reference(resourceId('Microsoft.Network/networkInterfaces', format('{0}pip', variables('nicName')))).ipConfigurations[0].properties.privateIPAddress, reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameSuffix'))).ipAddress, parameters('vpnVars').gwip, parameters('vpnVars').gwaddressPrefix, parameters('vpnVars').psk, parameters('vpnVars').onpremAddressPrefix), '')]"
+                  "commandToExecute": "[if(parameters('deployVpn'), format('sh cse.sh {0} {1} {2} {3} {4} {5} {6}', reference(resourceId('Microsoft.Network/networkInterfaces', format('{0}pip', variables('nicName')))).ipConfigurations[0].properties.privateIPAddress, reference(resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddressNameSuffix'))).ipAddress, parameters('vpnVars').gwip, parameters('vpnVars').gwaddressPrefix, parameters('vpnVars').psk, parameters('vpnVars').onpremAddressPrefix, parameters('vpnVars').spokeAddressPrefix), '')]"
                 }
               },
               "dependsOn": [
@@ -1964,7 +1970,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.3.255.40792",
-              "templateHash": "148198163943190969"
+              "templateHash": "9459023691808682700"
             }
           },
           "parameters": {
@@ -1991,7 +1997,7 @@
                 "allowVirtualNetworkAccess": true,
                 "allowForwardedTraffic": true,
                 "allowGatewayTransit": false,
-                "useRemoteGateways": false,
+                "useRemoteGateways": true,
                 "remoteVirtualNetwork": {
                   "id": "[parameters('hubVnetId')]"
                 }
@@ -2015,10 +2021,11 @@
         }
       },
       "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'hubgw')]",
         "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[0].vnetName)]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', variables('vnets')[1].vnetName)]"
       ]
     },
