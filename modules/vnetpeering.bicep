@@ -9,7 +9,7 @@ resource vnetpeering1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@
     allowVirtualNetworkAccess: true
     allowForwardedTraffic    : true
     allowGatewayTransit      : false
-    useRemoteGateways        : false
+    useRemoteGateways        : true
     remoteVirtualNetwork     : {
       id: hubVnetId
     }
