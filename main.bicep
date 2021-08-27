@@ -299,6 +299,20 @@ module onpremNsgAttachment './modules/nsgAttachment.bicep' = {
   scope:rg
 }
 
+module routeTableAttachment 'modules/routetable.bicep' = {
+  scope: rg
+  name: 'rt'
+  params: {
+    applianceAddress   : onpremVpnVM.outputs.onpremPrivIP
+    hubAddressPrefix   : virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+    nsgId              : onpremNSG.outputs.onpremNsgId
+    spokeAddressPrefix : virtualnetwork[1].outputs.subnets[0].properties.addressPrefix
+    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    subnetName         : virtualnetwork[2].outputs.subnets[0].name
+    vnetName           : virtualnetwork[2].outputs.vnName
+  }
+}
+
 /* Deployment using bicep (via az cli)
 
 The first command retrieves the signed-in usr object ID to use for setting Keyvault permissions, you need to add this ObjectID to the adUserId parameter at the top of this file.
