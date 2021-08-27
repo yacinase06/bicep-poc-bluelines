@@ -36,5 +36,10 @@ echo "$2 $3 : PSK \"$5\" " >> /etc/ipsec.secrets
 sudo sed -i 's/    # retransmit_tries = 5/retransmit_tries = 100/' /etc/strongswan.d/charon.conf
 sudo sed -i 's/    # install_routes = yes/install_routes = yes/' /etc/strongswan.d/charon.conf
 
+# Add forwarding rule to iptables to allow forwarding of traffic 
+modprobe iptable_nat
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
 # start strongSwan 
 sudo ipsec restart
