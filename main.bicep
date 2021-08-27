@@ -11,7 +11,7 @@ param Location string = 'UK South'
 @description('Set the resource group name, this will be created automatically')
 @minLength(3)
 @maxLength(10)
-param ResourceGroupName string = 'blueline'
+param ResourceGroupName string = 'bluelines'
 
 @description('Set the size for the VM')
 @minLength(6)
