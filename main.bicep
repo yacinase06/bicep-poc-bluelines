@@ -43,8 +43,6 @@ var dcVmName               = 'dc1'
 var onpremSubnetRef        = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[0].name}'
 var onpremBastionSubnetRef = '${virtualnetwork[2].outputs.vnid}/subnets/${virtualnetwork[2].outputs.subnets[1].name}'
 
-
-
 var vnets = [
   {
     vnetName: 'hubVnet'
@@ -123,9 +121,6 @@ module psk 'modules/psk.bicep' = {
   }
 }
 
-
-
-/*
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
 // It is not possible to create a loop through the vm var because the 'subnetref' which is an output only known at runtime is not calculated until after deployment. It is not possible therefore to use it in a loop.
 module hubJumpServer './modules/winvm.bicep' = {
@@ -172,8 +167,6 @@ module dc './modules/winvm.bicep' = {
   scope: rg
 } 
 
-*/
-
 module onpremVpnVM './modules/vm.bicep' = {
   params: {
     adminusername            : VmAdminUsername
@@ -191,19 +184,19 @@ module onpremVpnVM './modules/vm.bicep' = {
   scope: rg
 } 
 
-// module hubDnsVM './modules/vm.bicep' = {
-//   params: {
-//     adminusername            : VmAdminUsername
-//     keyvault_name            : kv.outputs.keyvaultname
-//     vmname                   : hubDNSVmName
-//     subnet1ref               : hubSubnetRef
-//     vmSize                   : HostVmSize
-//     githubPath               : githubPath
+module hubDnsVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : hubDNSVmName
+    subnet1ref               : hubSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
 
-//   }
-//   name: 'hubDnsVM'
-//   scope: rg
-// } 
+  }
+  name: 'hubDnsVM'
+  scope: rg
+} 
 
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
@@ -248,7 +241,7 @@ module vpnconn 'modules/vpnconn.bicep' = {
     
   }
 }
-/*
+
 module vnetPeering './modules/vnetpeering.bicep' = {
   params:{
     hubVnetId    : virtualnetwork[0].outputs.vnid
@@ -280,7 +273,7 @@ module onpremBastion './modules/bastion.bicep' = {
   scope:rg
   name: 'onpremBastion'
   }
-*/
+
 
 module onpremNSG './modules/nsg.bicep' = {
   name: 'hubNSG'
