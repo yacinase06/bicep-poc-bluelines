@@ -9,6 +9,7 @@ resource nsgAttachment 'Microsoft.Network/virtualNetworks/subnets@2020-07-01' = 
     addressPrefix: subnetAddressPrefix
     networkSecurityGroup: {
       id: nsgId
+
     }
   }
 }
