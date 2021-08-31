@@ -1,7 +1,7 @@
 @minLength(36)
 @maxLength(36)
 @description('Used to set the Keyvault access policy - run this command using az cli to get your ObjectID : az ad signed-in-user show --query objectId -o tsv')
-param adUserId string  = ''
+param adUserId string  = '31bc51c1-c74e-4d61-ae56-6061de35f3b8'
 
 @description('Set the location for the resource group and all resources')
 @minLength(3)
@@ -23,15 +23,18 @@ param VmAdminUsername string = 'localadmin'
 
 @description('Set the path to the github directory that has the custom script extension scripts')
 @minLength(10)
-param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/master/scripts/'
+param githubPath string = 'https://raw.githubusercontent.com/sdcscripts/bicep-poc-bluelines/vpn/scripts/'
 
 @description('Set the name of the domain eg contoso.local')
 @minLength(3)
 param domainName string = 'contoso.local'
 
-var hubVmName           = 'hubjump'
-var hubSubnetRef        = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
-var hubBastionSubnetRef = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
+var onpremVPNVmName           = 'vpnvm'
+var publicIPAddressNameSuffix = 'vpnpip'
+var hubDNSVmName              = 'hubdnsvm'
+var hubVmName                 = 'hubjump'
+var hubSubnetRef              = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[0].name}'
+var hubBastionSubnetRef       = '${virtualnetwork[0].outputs.vnid}/subnets/${virtualnetwork[0].outputs.subnets[1].name}'
 
 var spokeVmName     = 'spokejump'
 var SpokeSubnetRef  = '${virtualnetwork[1].outputs.vnid}/subnets/${virtualnetwork[1].outputs.subnets[0].name}'
@@ -52,6 +55,10 @@ var vnets = [
       {
         name: 'AzureBastionSubnet'
         prefix: '172.15.2.0/27'
+      }
+      {
+        name: 'GatewaySubnet' 
+        prefix: '172.15.3.0/27'
       }
     ]
   }
@@ -81,6 +88,15 @@ var vnets = [
   }
 ]
 
+var vpnVars = {
+    psk                : psk.outputs.psk
+    gwip               : hubgw.outputs.gwpip
+    gwaddressPrefix    : virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+    onpremAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    spokeAddressPrefix : virtualnetwork[1].outputs.subnets[0].properties.addressPrefix
+  }
+
+
 targetScope = 'subscription'
 
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -94,6 +110,16 @@ resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   }
   name: 'kv'
   scope: rg
+}
+
+module psk 'modules/psk.bicep' = {
+  scope: rg
+  name: 'psk'
+  params: {
+    keyvault_name: kv.outputs.keyvaultname
+    onpremSubnetRef: onpremSubnetRef
+    name: 'azure-conn'
+  }
 }
 
 // The VM passwords are generated at run time and automatically stored in Keyvault. 
@@ -141,6 +167,38 @@ module dc './modules/winvm.bicep' = {
   name: 'OnpremDC'
   scope: rg
 } 
+
+module onpremVpnVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : onpremVPNVmName
+    subnet1ref               : onpremSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+    publicIPAddressNameSuffix: publicIPAddressNameSuffix
+    deployPIP                : true
+    deployVpn                : true
+    vpnVars                  : vpnVars
+  }
+  name: 'onpremVpnVM'
+  scope: rg
+} 
+
+module hubDnsVM './modules/vm.bicep' = {
+  params: {
+    adminusername            : VmAdminUsername
+    keyvault_name            : kv.outputs.keyvaultname
+    vmname                   : hubDNSVmName
+    subnet1ref               : hubSubnetRef
+    vmSize                   : HostVmSize
+    githubPath               : githubPath
+
+  }
+  name: 'hubDnsVM'
+  scope: rg
+} 
+
 module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   params: {
     vnetName         : vnet.vnetName
@@ -153,6 +211,38 @@ module virtualnetwork './modules/vnet.bicep' = [for vnet in vnets: {
   scope: rg
 } ]
 
+module hubgw './modules/vnetgw.bicep' = {
+  name: 'hubgw'
+  scope: rg
+  params:{
+    gatewaySubnetId: virtualnetwork[0].outputs.subnets[2].id
+    location: Location
+
+  }
+}
+
+module localNetworkGW 'modules/lng.bicep' = {
+  scope: rg
+  name: 'onpremgw'
+  params: {
+    addressSpace:  virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    ipAddress: onpremVpnVM.outputs.onpremIP
+    name: 'onpremgw'
+  }
+}
+
+module vpnconn 'modules/vpnconn.bicep' = {
+  scope: rg
+  name: 'onprem-azure-conn'
+  params: {
+    psk     : psk.outputs.psk
+    lngid   : localNetworkGW.outputs.lngid
+    vnetgwid: hubgw.outputs.vnetgwid
+    name    : 'onprem-azure-conn'
+    
+  }
+}
+
 module vnetPeering './modules/vnetpeering.bicep' = {
   params:{
     hubVnetId    : virtualnetwork[0].outputs.vnid
@@ -162,7 +252,11 @@ module vnetPeering './modules/vnetpeering.bicep' = {
   }
   scope: rg
   name: 'vNetpeering'
+  dependsOn: [
+    hubgw
+  ]
 }
+
 
 module hubBastion './modules/bastion.bicep' = {
 params:{
@@ -183,6 +277,41 @@ module onpremBastion './modules/bastion.bicep' = {
   scope:rg
   name: 'onpremBastion'
   }
+
+
+module onpremNSG './modules/nsg.bicep' = {
+  name: 'hubNSG'
+  params:{
+    location: Location
+    sourceAddressPrefix: hubgw.outputs.gwpip
+  }
+scope:rg
+}
+
+module onpremNsgAttachment './modules/nsgAttachment.bicep' = {
+  name: 'onpremNsgAttachment'
+  params:{
+    nsgId              : onpremNSG.outputs.onpremNsgId
+    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix                    
+    subnetName         : virtualnetwork[2].outputs.subnets[0].name
+    vnetName           : virtualnetwork[2].outputs.vnName
+  }
+  scope:rg
+}
+
+module routeTableAttachment 'modules/routetable.bicep' = {
+  scope: rg
+  name: 'rt'
+  params: {
+    applianceAddress   : onpremVpnVM.outputs.onpremPrivIP
+    hubAddressPrefix   : virtualnetwork[0].outputs.subnets[0].properties.addressPrefix
+    nsgId              : onpremNSG.outputs.onpremNsgId
+    spokeAddressPrefix : virtualnetwork[1].outputs.subnets[0].properties.addressPrefix
+    subnetAddressPrefix: virtualnetwork[2].outputs.subnets[0].properties.addressPrefix
+    subnetName         : virtualnetwork[2].outputs.subnets[0].name
+    vnetName           : virtualnetwork[2].outputs.vnName
+  }
+}
 
 /* Deployment using bicep (via az cli)
 
